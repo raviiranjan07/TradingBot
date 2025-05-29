@@ -11,7 +11,7 @@ import websockets
 from dotenv import load_dotenv
 from collections import deque
 
-from app.services.placing_order import get_min_order_qty, place_order, set_leverage
+# from app.services.placing_order import get_min_order_qty, place_order, set_leverage
 from app.services.live_trade import check_open_position
 from app.services.tele import telegram_msg
 
@@ -123,7 +123,7 @@ async def kline_logic(exchange):
                 MAGENTA = "\033[95m"
                 
                 output = (
-                    f"{CYAN}Time elapsed: {formatted_elapsed}{RESET} | 🟢 Price: {current_price:.2f} | open: {open}\n"
+                    f"{CYAN}Time elapsed: {formatted_elapsed}{RESET} | 🟢 Price: {current_price:.2f} | ⏰ open: {open}\n"
                     f"High: {high:.2f} | Low: {low:.2f} | {RED}F_Loss: {fixed_low:.2f}%{RESET} | {GREEN}F_Gain: {fixed_high:.2f}%{RESET} | {RED}Loss: {percent_loss:.2f}%{RESET} |"
                     f"{GREEN}Gain: {percent_gain:.2f}%{RESET}"
                 )
