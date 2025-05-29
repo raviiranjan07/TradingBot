@@ -41,6 +41,12 @@ TIME_WINDOW = 3600
 
 TRADE_WS = "wss://fstream.binance.com/ws/ethusdt@trade"
 
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(message)s',
+    datefmt='%H:%M:%S'
+)
 
 async def kline_logic(exchange):
     start_time = time.time()
@@ -111,7 +117,6 @@ async def kline_logic(exchange):
                             fixed_high = max(fixed_high,percentage_gain(high,low))
 
                         
-                print(f"fixed_low: {fixed_low}")
                 elapsed = int(now - start_time)
                 formatted_elapsed = time.strftime('%H:%M:%S', time.gmtime(elapsed))
                 
@@ -133,13 +138,6 @@ async def kline_logic(exchange):
                 # # Move up 2 lines and clear
                 # sys.stdout.write('\033[F\033[K\033[F\033[K')
                 # print(output, end='')
-                
-                # Setup logging
-                logging.basicConfig(
-                    level=logging.INFO,
-                    format='%(asctime)s | %(message)s',
-                    datefmt='%H:%M:%S'
-                )
 
                 output = (
                     f"Time elapsed: {formatted_elapsed} | 🟢 Price: {current_price:.2f} | ⏰ open: {open:.2f}\n"
