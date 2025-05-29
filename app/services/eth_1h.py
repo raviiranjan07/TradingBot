@@ -5,8 +5,8 @@ import ccxt
 import time
 import json
 import websockets
-import pandas as pd
-import pandas_ta as ta
+# import pandas as pd
+# import pandas_ta as ta
 
 from dotenv import load_dotenv
 from collections import deque

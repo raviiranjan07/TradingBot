@@ -3,7 +3,6 @@ import os
 import json
 import asyncio
 
-from dotenv import load_dotenv
 from binance.client import Client
 from tabulate import tabulate
 from colorama import Fore, Style
