@@ -5,6 +5,8 @@ import ccxt
 import time
 import json
 import websockets
+import logging
+
 # import pandas as pd
 # import pandas_ta as ta
 
@@ -122,16 +124,31 @@ async def kline_logic(exchange):
                 CYAN = "\033[96m"
                 MAGENTA = "\033[95m"
                 
-                output = (
-                    f"{CYAN}Time elapsed: {formatted_elapsed}{RESET} | 🟢 Price: {current_price:.2f} | ⏰ open: {open}\n"
-                    f"High: {high:.2f} | Low: {low:.2f} | {RED}F_Loss: {fixed_low:.2f}%{RESET} | {GREEN}F_Gain: {fixed_high:.2f}%{RESET} | {RED}Loss: {percent_loss:.2f}%{RESET} |"
-                    f"{GREEN}Gain: {percent_gain:.2f}%{RESET}"
+                # output = (
+                #     f"{CYAN}Time elapsed: {formatted_elapsed}{RESET} | 🟢 Price: {current_price:.2f} | ⏰ open: {open}\n"
+                #     f"High: {high:.2f} | Low: {low:.2f} | {RED}F_Loss: {fixed_low:.2f}%{RESET} | {GREEN}F_Gain: {fixed_high:.2f}%{RESET} | {RED}Loss: {percent_loss:.2f}%{RESET} |"
+                #     f"{GREEN}Gain: {percent_gain:.2f}%{RESET}"
+                # )
+
+                # # Move up 2 lines and clear
+                # sys.stdout.write('\033[F\033[K\033[F\033[K')
+                # print(output, end='')
+                
+                # Setup logging
+                logging.basicConfig(
+                    level=logging.INFO,
+                    format='%(asctime)s | %(message)s',
+                    datefmt='%H:%M:%S'
                 )
 
-                # Move up 2 lines and clear
-                sys.stdout.write('\033[F\033[K\033[F\033[K')
-                print(output, end='')
-                
+                output = (
+                    f"Time elapsed: {formatted_elapsed} | 🟢 Price: {current_price:.2f} | ⏰ open: {open:.2f}\n"
+                    f"High: {high:.2f} | Low: {low:.2f} | "
+                    f"F_Loss: {fixed_low:.2f}% | F_Gain: {fixed_high:.2f}% | "
+                    f"Loss: {percent_loss:.2f}% | Gain: {percent_gain:.2f}%"
+                )
+
+                logging.info(output)
                 
                 if fixed_high >= 2.5:
                     print("📉 Gain ≥ 2.5% → Going SHORT (SELL)")
