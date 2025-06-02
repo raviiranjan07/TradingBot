@@ -56,7 +56,6 @@ def notify_ip_change(new_ip: str):
 
 def check_ip_on_startup():
     current_ip = get_current_ip()
-    telegram_msg(f"I.P : {current_ip}")
     
     if not current_ip:
         return
