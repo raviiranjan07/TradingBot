@@ -11,7 +11,7 @@ from collections import deque
 
 # from app.services.placing_order import get_min_order_qty
 from app.services.positions import check_open_position 
-from app.services.tele import telegram_msg
+from app.services.tele import telegram_msg, check_ip_on_startup
 from app.services.state import eth_h 
 
 
@@ -152,7 +152,8 @@ async def kline_logic(exchange):
         await asyncio.sleep(5)
 
 async def main():
-    exchange = create_binance_futures_client()  
+    check_ip_on_startup()
+    exchange = create_binance_futures_client() 
     
     # set_leverage(exchange, symbol="ETH/USDT", leverage=125) 
     await asyncio.gather(kline_logic(exchange))
