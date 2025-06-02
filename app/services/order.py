@@ -30,23 +30,28 @@ def get_min_order_qty(price, exchange,leverage=125):
     return round(qty, 4)
 
 def percentage_move():
-    if check_open_position("ETHUSDT","sell"):
-        if eth_h.fixed_high >= 2.5:
-            print("📉 Gain ≥ 2.5% → Going SHORT (SELL)")
+    if eth_h.fixed_high >= 2.5:
             telegram_msg("📉 Gain ≥ 2.5% → Going SHORT (SELL)")
-            qty = get_min_order_qty(eth_h.exchange, eth_h.current_price) 
-            leveraged_value = qty * 125
-            order_quantity  = leveraged_value/eth_h.current_price
+    if eth_h.fixed_low >= 2.5:
+            telegram_msg("📈 Loss ≥ 2.5% → Going LONG (BUY)")  
+    # if check_open_position("ETHUSDT","sell"):
+    #     if eth_h.fixed_high >= 2.5:
+    #         print("📉 Gain ≥ 2.5% → Going SHORT (SELL)")
+    #         telegram_msg("📉 Gain ≥ 2.5% → Going SHORT (SELL)")
+    #         qty = get_min_order_qty(eth_h.exchange, eth_h.current_price) 
+    #         leveraged_value = qty * 125
+    #         order_quantity  = leveraged_value/eth_h.current_price
             # print("🚫 Already in SHORT position. Skipping order.")
             # telegram_msg("🚫 Already in SHORT position. Skipping order.")
-    if check_open_position("ETHUSDT","buy"): 
-        if eth_h.fixed_low >= 2.5:
-            print("📈 Loss ≥ 2.5% → Going LONG (BUY)")    
-            qty = get_min_order_qty(eth_h.exchange, eth_h.current_price) 
-            leveraged_value = qty * 125
-            order_quantity  = leveraged_value/eth_h.current_price
-            # place_order(exchange, "ETH/USDT", "buy", qty)
-            # await asyncio.sleep(5)
+            
+    # if check_open_position("ETHUSDT","buy"): 
+    #     if eth_h.fixed_low >= 2.5:
+    #         print("📈 Loss ≥ 2.5% → Going LONG (BUY)")    
+    #         qty = get_min_order_qty(eth_h.exchange, eth_h.current_price) 
+    #         leveraged_value = qty * 125
+    #         order_quantity  = leveraged_value/eth_h.current_price
+    #         # place_order(exchange, "ETH/USDT", "buy", qty)
+    #         # await asyncio.sleep(5)
 
 def place_order(exchange, symbol, side, qty):
     try:

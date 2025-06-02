@@ -139,12 +139,12 @@ async def kline_logic(exchange):
                 sys.stdout.write('\033[F\033[K\033[F\033[K')
                 print(output, end='')
                 
-                 # ✅ Update shared state and trigger logic
-                eth_h.current_price = current_price
-                eth_h.fixed_high = fixed_high
-                eth_h.fixed_low = fixed_low
+                # ✅ Update shared state and trigger logic
+                # eth_h.current_price = current_price
+                # eth_h.fixed_high = fixed_high
+                # eth_h.fixed_low = fixed_low
 
-                percentage_move()
+                # percentage_move()
 
 
     except websockets.ConnectionClosed as e:
