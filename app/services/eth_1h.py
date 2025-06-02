@@ -9,8 +9,10 @@ import websockets
 from dotenv import load_dotenv
 from collections import deque
 
-from app.services.live_trade import check_open_position
+# from app.services.placing_order import get_min_order_qty
+from app.services.positions import check_open_position 
 from app.services.tele import telegram_msg
+from app.services.state import eth_h 
 
 
 load_dotenv()
@@ -36,6 +38,7 @@ TIME_WINDOW = 3600
 TRADE_WS = "wss://fstream.binance.com/ws/ethusdt@trade"
 
 async def kline_logic(exchange):
+    from .order import percentage_move
     start_time = time.time()
     
     high = None
@@ -43,10 +46,13 @@ async def kline_logic(exchange):
     open= None
     fixed_high = 0
     fixed_low = 0
-
+    
+    eth_h.exchange = exchange
+    
     try:
         async with websockets.connect(TRADE_WS) as ws:
             while True:
+                # percentage_move()
                 message = await ws.recv()
                 data = json.loads(message)
                 current_price = float(data['p'])
@@ -76,11 +82,18 @@ async def kline_logic(exchange):
                     percent_loss = percent_gain = 0
                 
                 def percentage_gain(high, low):
-                    return ((high - low) / low) * 100
-                def percentage_loss(high,low):
-                    return ((high - low) / low) * 100 
-                
-                if current_price >= open:
+                    if low ==0:
+                        return 0
+                    else:
+                        return ((high - low) / low) * 100
+
+                def percentage_loss(high, low):
+                    if low == 0:
+                        return 0
+                    else:
+                        return ((high - low) / low) * 100
+                                
+                if current_price >= open and high != 0 and low!=0:
                     high = current_price
                     low = open
                 
@@ -125,35 +138,22 @@ async def kline_logic(exchange):
                 # Move up 2 lines and clear
                 sys.stdout.write('\033[F\033[K\033[F\033[K')
                 print(output, end='')
-                                   
-                if fixed_high >= 2.5:
-                    print("📉 Gain ≥ 2.5% → Going SHORT (SELL)")
-                    telegram_msg("📉 Gain ≥ 2.5% → Going SHORT (SELL)")
-                    if check_open_position("ETHUSDT","sell"):
-                        print("🚫 Already in SHORT position. Skipping order.")
-                        telegram_msg("🚫 Already in SHORT position. Skipping order.")
-                    else:
-                        # qty = get_min_order_qty(exchange, current_price)
-                        # place_order(exchange, "ETH/USDT", "sell", qty)
-                        # await asyncio.sleep(5)  # small delay to avoid spamming orders
-                        pass
-                elif fixed_low >= 2.5:
-                    print("📈 Loss ≥ 2.5% → Going LONG (BUY)")
-                    telegram_msg("📈 Loss ≥ 2.5% → Going LONG (BUY)")
-                    if check_open_position("ETHUSDT","buy"):
-                        print("🚫 Already in LONG position. Skipping order.")
-                        telegram_msg("🚫 Already in LONG position. Skipping order.")
-                    else:
-                        # place_order(exchange, "ETH/USDT", "buy", qty)
-                        # await asyncio.sleep(5)
-                        pass
+                
+                 # ✅ Update shared state and trigger logic
+                eth_h.current_price = current_price
+                eth_h.fixed_high = fixed_high
+                eth_h.fixed_low = fixed_low
+
+                percentage_move()
+
 
     except websockets.ConnectionClosed as e:
         print(f"WebSocket connection closed with error: {e}. Reconnecting...")
         await asyncio.sleep(5)
 
 async def main():
-    exchange = create_binance_futures_client()
+    exchange = create_binance_futures_client()  
+    
     # set_leverage(exchange, symbol="ETH/USDT", leverage=125) 
     await asyncio.gather(kline_logic(exchange))
 

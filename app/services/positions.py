@@ -8,7 +8,6 @@ from tabulate import tabulate
 from colorama import Fore, Style
 
 
-
 api_key = os.getenv('BINANCE_FUTURE_API_KEY')
 secret_key = os.getenv('BINANCE_SECRET_KEY')
 

@@ -1,3 +1,7 @@
+from .positions import check_open_position
+from .state import eth_h
+from .tele import telegram_msg
+
 def set_leverage(exchange, symbol="ETH/USDT", leverage=125):
     markets = exchange.load_markets()  # Load markets first
     market = exchange.market(symbol)   # Get market details
@@ -24,6 +28,25 @@ def get_min_order_qty(price, exchange,leverage=125):
     print(f"margin: {margin}")
     qty = min_notional / price
     return round(qty, 4)
+
+def percentage_move():
+    if check_open_position("ETHUSDT","sell"):
+        if eth_h.fixed_high >= 2.5:
+            print("📉 Gain ≥ 2.5% → Going SHORT (SELL)")
+            telegram_msg("📉 Gain ≥ 2.5% → Going SHORT (SELL)")
+            qty = get_min_order_qty(eth_h.exchange, eth_h.current_price) 
+            leveraged_value = qty * 125
+            order_quantity  = leveraged_value/eth_h.current_price
+            # print("🚫 Already in SHORT position. Skipping order.")
+            # telegram_msg("🚫 Already in SHORT position. Skipping order.")
+    if check_open_position("ETHUSDT","buy"): 
+        if eth_h.fixed_low >= 2.5:
+            print("📈 Loss ≥ 2.5% → Going LONG (BUY)")    
+            qty = get_min_order_qty(eth_h.exchange, eth_h.current_price) 
+            leveraged_value = qty * 125
+            order_quantity  = leveraged_value/eth_h.current_price
+            # place_order(exchange, "ETH/USDT", "buy", qty)
+            # await asyncio.sleep(5)
 
 def place_order(exchange, symbol, side, qty):
     try:
