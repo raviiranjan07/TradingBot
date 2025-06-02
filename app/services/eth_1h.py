@@ -11,7 +11,7 @@ from collections import deque
 
 # from app.services.placing_order import get_min_order_qty
 from app.services.positions import check_open_position 
-from app.services.tele import telegram_msg, check_ip_on_startup
+from app.services.tele import telegram_msg
 from app.services.state import eth_h 
 
 
