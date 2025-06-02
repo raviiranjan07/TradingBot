@@ -152,7 +152,7 @@ async def kline_logic(exchange):
         await asyncio.sleep(5)
 
 async def main():
-    check_ip_on_startup()
+    # check_ip_on_startup()
     exchange = create_binance_futures_client() 
     
     # set_leverage(exchange, symbol="ETH/USDT", leverage=125) 
