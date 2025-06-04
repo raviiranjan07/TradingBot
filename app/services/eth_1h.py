@@ -39,6 +39,34 @@ TIME_WINDOW = 3600
 
 TRADE_WS = "wss://fstream.binance.com/ws/ethusdt@trade"
 
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/health' or self.path == '/':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {
+                'status': 'healthy',
+                'service': 'trading-bot',
+                'timestamp': time.time()
+            }
+            self.wfile.write(json.dumps(response).encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
+    
+    def log_message(self, format, *args):
+        # Suppress HTTP server logs to avoid cluttering trading bot output
+        pass
+
+def start_http_server():
+    """Start HTTP server for Cloud Run health checks"""
+    port = int(os.environ.get('PORT', 8080))
+    server_address = ('', port)
+    httpd = HTTPServer(server_address, HealthCheckHandler)
+    print(f"🌐 HTTP health check server started on port {port}")
+    httpd.serve_forever()
+
 async def kline_logic(exchange):
     from .order import percentage_move
     start_time = time.time()
@@ -163,66 +191,18 @@ async def kline_logic(exchange):
 # if __name__ == "__main__":
 #     asyncio.run(main())
 
-# --- Minimal HTTP server for Cloud Run health check ---
-
-PORT = int(os.environ.get('PORT', 8080))
-
-class SimpleHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == '/':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'status': 'running',
-                'service': 'eth-trading-bot',
-                'timestamp': time.time()
-            }
-            self.wfile.write(json.dumps(response).encode())
-        elif self.path == '/health':
-            self.send_response(200)
-            self.send_header('Content-type', 'text/plain')
-            self.end_headers()
-            self.wfile.write(b'OK\n')
-        else:
-            self.send_response(404)
-            self.end_headers()
+async def main():
+    # Start HTTP server in a separate thread for Cloud Run health checks
+    http_thread = threading.Thread(target=start_http_server, daemon=True)
+    http_thread.start()
     
-    def log_message(self, format, *args):
-        # Suppress HTTP server logs to keep trading bot output clean
-        pass
-
-def run_http_server():
-    server = HTTPServer(('0.0.0.0', PORT), SimpleHandler)
-    print(f"🌐 HTTP server running on port {PORT}")
-    server.serve_forever()
-
-def start_http_server_in_thread():
-    thread = threading.Thread(target=run_http_server, daemon=True)
-    thread.start()
-    return thread
-
-async def main_async():
-    print("🚀 Starting ETH Trading Bot...")
+    print("🚀 Trading bot starting...")
+    
+    # check_ip_on_startup()
     exchange = create_binance_futures_client() 
-    await kline_logic(exchange)
-
-def main():
-    print("🔧 Starting HTTP server for Cloud Run...")
-    http_thread = start_http_server_in_thread()
     
-    # Give the HTTP server a moment to start
-    time.sleep(1)
-    
-    print("📈 Starting async trading bot...")
-    try:
-        asyncio.run(main_async())
-    except KeyboardInterrupt:
-        print("\n🛑 Shutting down gracefully...")
-    except Exception as e:
-        print(f"❌ Error in main: {e}")
-        # Keep the HTTP server alive even if trading logic fails
-        http_thread.join()
+    # set_leverage(exchange, symbol="ETH/USDT", leverage=125) 
+    await asyncio.gather(kline_logic(exchange))
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
