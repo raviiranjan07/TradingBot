@@ -68,7 +68,7 @@ def start_http_server():
     httpd.serve_forever()
 
 async def kline_logic(exchange):
-    from .order import percentage_move
+    # from app.services.order import percentage_move
     start_time = time.time()
     
     high = None
