@@ -169,27 +169,60 @@ PORT = int(os.environ.get('PORT', 8080))
 
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
-        self.end_headers()
-        self.wfile.write(b'TradingBot is running\n')
+        if self.path == '/':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            response = {
+                'status': 'running',
+                'service': 'eth-trading-bot',
+                'timestamp': time.time()
+            }
+            self.wfile.write(json.dumps(response).encode())
+        elif self.path == '/health':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(b'OK\n')
+        else:
+            self.send_response(404)
+            self.end_headers()
+    
+    def log_message(self, format, *args):
+        # Suppress HTTP server logs to keep trading bot output clean
+        pass
 
 def run_http_server():
     server = HTTPServer(('0.0.0.0', PORT), SimpleHandler)
-    print(f"HTTP server running on port {PORT}")
+    print(f"🌐 HTTP server running on port {PORT}")
     server.serve_forever()
 
 def start_http_server_in_thread():
     thread = threading.Thread(target=run_http_server, daemon=True)
     thread.start()
+    return thread
 
 async def main_async():
+    print("🚀 Starting ETH Trading Bot...")
     exchange = create_binance_futures_client() 
-    await asyncio.gather(kline_logic(exchange))
+    await kline_logic(exchange)
 
 def main():
-    start_http_server_in_thread()  # Start minimal HTTP server in background
-    asyncio.run(main_async())       # Run async trading bot
+    print("🔧 Starting HTTP server for Cloud Run...")
+    http_thread = start_http_server_in_thread()
+    
+    # Give the HTTP server a moment to start
+    time.sleep(1)
+    
+    print("📈 Starting async trading bot...")
+    try:
+        asyncio.run(main_async())
+    except KeyboardInterrupt:
+        print("\n🛑 Shutting down gracefully...")
+    except Exception as e:
+        print(f"❌ Error in main: {e}")
+        # Keep the HTTP server alive even if trading logic fails
+        http_thread.join()
 
 if __name__ == "__main__":
     main()
