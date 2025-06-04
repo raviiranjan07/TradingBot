@@ -192,6 +192,9 @@ async def main_async():
 
 def main():
     start_http_server_in_thread()  # start minimal HTTP server in background
+    loop = asyncio.get_running_loop()
+    server_thread = threading.Thread(target=run_http_server, daemon=True)
+    server_thread.start()
     asyncio.run(main_async())       # run your async trading bot
 
 if __name__ == "__main__":
