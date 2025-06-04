@@ -5,6 +5,8 @@ import ccxt
 import time
 import json
 import websockets
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from dotenv import load_dotenv
 from collections import deque
@@ -151,12 +153,46 @@ async def kline_logic(exchange):
         print(f"WebSocket connection closed with error: {e}. Reconnecting...")
         await asyncio.sleep(5)
 
-async def main():
-    # check_ip_on_startup()
-    exchange = create_binance_futures_client() 
+# async def main():
+#     # check_ip_on_startup()
+#     exchange = create_binance_futures_client() 
     
-    # set_leverage(exchange, symbol="ETH/USDT", leverage=125) 
+#     # set_leverage(exchange, symbol="ETH/USDT", leverage=125) 
+#     await asyncio.gather(kline_logic(exchange))
+
+# if __name__ == "__main__":
+#     asyncio.run(main())
+
+# --- Minimal HTTP server for Cloud Run health check ---
+
+PORT = int(os.environ.get('PORT', 8080))
+
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
+        self.end_headers()
+        self.wfile.write(b'TradingBot is running\n')
+
+def run_http_server():
+    server = HTTPServer(('0.0.0.0', PORT), SimpleHandler)
+    print(f"HTTP server running on port {PORT}")
+    server.serve_forever()
+
+def start_http_server_in_thread():
+    thread = threading.Thread(target=run_http_server)
+    thread.daemon = True
+    thread.start()
+
+# --- Run both HTTP server and your async bot ---
+
+async def main_async():
+    exchange = create_binance_futures_client() 
     await asyncio.gather(kline_logic(exchange))
 
+def main():
+    start_http_server_in_thread()  # start minimal HTTP server in background
+    asyncio.run(main_async())       # run your async trading bot
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
