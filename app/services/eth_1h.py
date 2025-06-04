@@ -180,22 +180,16 @@ def run_http_server():
     server.serve_forever()
 
 def start_http_server_in_thread():
-    thread = threading.Thread(target=run_http_server)
-    thread.daemon = True
+    thread = threading.Thread(target=run_http_server, daemon=True)
     thread.start()
-
-# --- Run both HTTP server and your async bot ---
 
 async def main_async():
     exchange = create_binance_futures_client() 
     await asyncio.gather(kline_logic(exchange))
 
 def main():
-    start_http_server_in_thread()  # start minimal HTTP server in background
-    loop = asyncio.get_running_loop()
-    server_thread = threading.Thread(target=run_http_server, daemon=True)
-    server_thread.start()
-    asyncio.run(main_async())       # run your async trading bot
+    start_http_server_in_thread()  # Start minimal HTTP server in background
+    asyncio.run(main_async())       # Run async trading bot
 
 if __name__ == "__main__":
     main()
