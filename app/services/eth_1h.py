@@ -192,17 +192,16 @@ async def kline_logic(exchange):
 #     asyncio.run(main())
 
 async def main():
-    # Start HTTP server in a separate thread for Cloud Run health checks
-    http_thread = threading.Thread(target=start_http_server, daemon=True)
-    http_thread.start()
+    # http_thread = threading.Thread(target=start_http_server, daemon=True)
+    # http_thread.start()
     
-    print("🚀 Trading bot starting...")
+    # print("🚀 Trading bot starting...")
     
-    # check_ip_on_startup()
-    exchange = create_binance_futures_client() 
+    # # check_ip_on_startup()
+    # exchange = create_binance_futures_client() 
     
-    # set_leverage(exchange, symbol="ETH/USDT", leverage=125) 
-    await asyncio.gather(kline_logic(exchange))
-
+    
+    # await asyncio.gather(kline_logic(exchange))
+    start_http_server()
 if __name__ == "__main__":
     asyncio.run(main())
