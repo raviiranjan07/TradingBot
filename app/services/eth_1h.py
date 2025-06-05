@@ -204,4 +204,5 @@ async def main():
     # await asyncio.gather(kline_logic(exchange))
     start_http_server()
 if __name__ == "__main__":
-    asyncio.run(main())
+    # asyncio.run(main())
+    main()
