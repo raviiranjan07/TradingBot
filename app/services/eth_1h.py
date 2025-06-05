@@ -1,8 +1,8 @@
 import os
 import asyncio
 import sys
-import ccxt
 import time
+import ccxt
 import json
 import websockets
 import threading
@@ -192,17 +192,15 @@ async def kline_logic(exchange):
 #     asyncio.run(main())
 
 async def main():
-    # http_thread = threading.Thread(target=start_http_server, daemon=True)
-    # http_thread.start()
+    http_thread = threading.Thread(target=start_http_server, daemon=True)
+    http_thread.start()
     
-    # print("🚀 Trading bot starting...")
+    print("🚀 Trading bot starting...")
     
-    # # check_ip_on_startup()
-    # exchange = create_binance_futures_client() 
+    # check_ip_on_startup()
+    exchange = create_binance_futures_client() 
     
     
-    # await asyncio.gather(kline_logic(exchange))
-    start_http_server()
+    await asyncio.gather(kline_logic(exchange))
 if __name__ == "__main__":
-    # asyncio.run(main())
-    main()
+    asyncio.run(main())

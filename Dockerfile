@@ -2,19 +2,17 @@ FROM python:3.10-slim
 
 WORKDIR /app
 
-# Copy requirements first for better caching
+# Copy requirements first for caching
 COPY requirements.txt .
+
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the application
+# Copy the rest of your app
 COPY . .
 
-# Set environment variables
 ENV PORT=8080
 ENV PYTHONPATH=/app
 
-# Expose the port
-EXPOSE $PORT
+EXPOSE 8080
 
-# Run the application
 CMD ["python", "-m", "app.services.eth_1h"]
