@@ -5,8 +5,8 @@ import time
 import ccxt
 import json
 import websockets
-import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import time
+from tabulate import tabulate
 
 from dotenv import load_dotenv
 from collections import deque
@@ -39,33 +39,6 @@ TIME_WINDOW = 3600
 
 TRADE_WS = "wss://fstream.binance.com/ws/ethusdt@trade"
 
-class HealthCheckHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == '/health' or self.path == '/':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            response = {
-                'status': 'healthy',
-                'service': 'trading-bot',
-                'timestamp': time.time()
-            }
-            self.wfile.write(json.dumps(response).encode())
-        else:
-            self.send_response(404)
-            self.end_headers()
-    
-    def log_message(self, format, *args):
-        # Suppress HTTP server logs to avoid cluttering trading bot output
-        pass
-
-def start_http_server():
-    """Start HTTP server for Cloud Run health checks"""
-    port = int(os.environ.get('PORT', 8080))
-    server_address = ('', port)
-    httpd = HTTPServer(server_address, HealthCheckHandler)
-    print(f"🌐 HTTP health check server started on port {port}")
-    httpd.serve_forever()
 
 async def kline_logic(exchange):
     # from app.services.order import percentage_move
@@ -97,7 +70,7 @@ async def kline_logic(exchange):
                     start_time = now
                     high = 0
                     low = 0
-                    open = 0
+                    open = current_price
                     fixed_high = 0
                     fixed_low = 0
                     
@@ -164,18 +137,18 @@ async def kline_logic(exchange):
                     f"High: {high:.2f} | Low: {low:.2f} | {RED}F_Loss: {fixed_low:.2f}%{RESET} | {GREEN}F_Gain: {fixed_high:.2f}%{RESET} | {RED}Loss: {percent_loss:.2f}%{RESET} |"
                     f"{GREEN}Gain: {percent_gain:.2f}%{RESET}"
                 )
+                sys.stdout.write('\033[2J')   # Clear screen
+                sys.stdout.write('\033[H')    # Move cursor to top-left (home position)
+                sys.stdout.flush()
 
-                # Move up 2 lines and clear
-                sys.stdout.write('\033[F\033[K\033[F\033[K')
-                print(output, end='')
-                
+                print(output)
+                                
                 # ✅ Update shared state and trigger logic
                 # eth_h.current_price = current_price
                 # eth_h.fixed_high = fixed_high
                 # eth_h.fixed_low = fixed_low
 
                 # percentage_move()
-
 
     except websockets.ConnectionClosed as e:
         print(f"WebSocket connection closed with error: {e}. Reconnecting...")
@@ -191,16 +164,3 @@ async def kline_logic(exchange):
 # if __name__ == "__main__":
 #     asyncio.run(main())
 
-async def main():
-    http_thread = threading.Thread(target=start_http_server, daemon=True)
-    http_thread.start()
-    
-    print("🚀 Trading bot starting...")
-    
-    # check_ip_on_startup()
-    exchange = create_binance_futures_client() 
-    
-    
-    await asyncio.gather(kline_logic(exchange))
-if __name__ == "__main__":
-    asyncio.run(main())

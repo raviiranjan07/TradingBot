@@ -7,7 +7,7 @@ def set_leverage(exchange, symbol="ETH/USDT", leverage=125):
     market = exchange.market(symbol)   # Get market details
         
     exchange.fapiPrivate_post_leverage({
-        'symbol': market['id'],       # e.g., 'ETHUSDT'
+        'symbol': market['id'],     
         'leverage': leverage
     })
 
